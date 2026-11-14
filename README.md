@@ -72,8 +72,8 @@ Both use the same engine (`aunty_core.py`); the only difference is `debug=False`
 You need Python 3 and a free [OpenRouter](https://openrouter.ai) API key.
 
 ```powershell
-git clone https://github.com/ShubhDeshani/judgemental-padosi-aunty.git
-cd judgemental-padosi-aunty
+git clone https://github.com/ShubhDeshani/Judgemental-Aunty-Chatbot.git
+cd Judgemental-Aunty-Chatbot
 python -m venv venv
 venv\Scripts\Activate.ps1          # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
