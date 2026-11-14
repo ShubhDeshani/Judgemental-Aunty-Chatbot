@@ -6,6 +6,7 @@ I started this as a simple project with just an LLM layer and a system prompt to
 
 I added the RAG pipeline to learnt about how RAGchatbots work and for future use of this knowledge to create crazier projects.
 
+READ BELOW FOR MORE DETAILS. IT KEEPS GETTING INTERESTING
 ## Sample
 
 `chat.py` is the clean chat:
