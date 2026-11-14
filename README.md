@@ -1,8 +1,10 @@
-# Judgemental Padosi Aunty
+# Judgemental Aunty Chatbot
 
-A terminal chatbot that roasts you like a judgemental Indian neighbour-aunty while bragging about her favourite boy, Shubh. The facts about Shubh come from a **Chroma vector index**; the roast is written by an **LLM**.
+A personalized self-made chatbot made for roasting any type messages sent by users while praising/bragging about her creator - Shubh. The facts about shubh are stored in a vector database. the retrieval pipeline(RAG) selects relevant facts about shubh. The LLM layer finishes the job my replying the user with an awfully funny roast and using the retrieved fact to praise shubh.
 
-It started as a pure prompt-engineering experiment. I then rebuilt the facts layer as a retrieval pipeline to learn how RAG works, measured it, and fixed what the measurements showed.
+I started this as a simple project with just an LLM layer and a system prompt to maintain aunty ji's character. Then i learnt about RAG chatbots and found it extremely interesting! and decided to add it in this project though it was not needed for a small project like this. 
+
+I added the RAG pipeline to learnt about how RAGchatbots work and for future use of this knowledge to create crazier projects.
 
 ## Sample
 
