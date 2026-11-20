@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Judgemental Padosi Aunty</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f7f3e8; color: #222; display: flex; flex-direction: column; height: 100vh; }
+  header { background: #8e44ad; color: #fff; padding: 12px 16px; }
+  header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+  header a { color: #ffeaa7; text-decoration: underline; font-size: 0.95rem; }
+  main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  #chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+  .bubble { max-width: 80%; padding: 10px 14px; border-radius: 14px; line-height: 1.5; font-size: 1rem; white-space: pre-wrap; }
+  .user { align-self: flex-end; background: #8e44ad; color: #fff; }
+  .aunty { align-self: flex-start; background: #fff; color: #222; border: 1px solid #d1c4e9; }
+  .typing { align-self: flex-start; font-style: italic; color: #666; padding: 8px 14px; border-radius: 14px; background: #fff; border: 1px solid #d1c4e9; font-size: 0.95rem; }
+  #waking { align-self: flex-start; font-style: italic; color: #8a6d1b; padding: 8px 14px; border-radius: 14px; background: #fff3cd; border: 1px solid #ffeaa7; font-size: 0.95rem; margin-bottom: 6px; display: none; }
+  .error { align-self: flex-start; color: #c0392b; padding: 8px 14px; background: #fadbd8; border-radius: 10px; font-size: 0.95rem; }
+  .count { align-self: flex-end; font-size: 0.75rem; color: #666; margin-top: 2px; margin-right: 4px; }
+  footer { padding: 12px 16px; font-size: 0.8rem; color: #666; background: #fff; border-top: 1px solid #e8e0d0; text-align: center; line-height: 1.45; }
+  .form { padding: 12px 16px; background: #fff; border-top: 1px solid #e8e0d0; display: flex; gap: 8px; }
+  #message { flex: 1; padding: 10px 16px; border: 1px solid #d1c4e9; border-radius: 26px; font-size: 1rem; outline: none; }
+  #message:focus { border-color: #8e44ad; }
+  #send { padding: 10px 22px; background: #8e44ad; color: #fff; border: none; border-radius: 26px; font-size: 1rem; cursor: pointer; font-weight: 600; }
+  #send:disabled { opacity: 0.55; cursor: not-allowed; }
+  @media (max-width: 480px) {
+    .bubble { max-width: 92%; }
+    header h1 { font-size: 1.1rem; }
+    .form { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Judgemental Padosi Aunty</h1>
+  <div><a href="https://github.com/ShubhDeshani/Judgemental-Aunty-Chatbot" target="_blank" rel="noopener">GitHub repo</a></div>
+</header>
+<main>
+  <div id="chat"></div>
+  <div id="waking">waking the aunty up…</div>
+</main>
+<div class="form">
+  <input type="text" id="message" placeholder="Say something to the aunty…" autocomplete="off">
+  <button id="send">Send</button>
+</div>
+<div class="count" id="remaining"></div>
+<footer>
+  Replies are AI-generated for fun. Your messages are sent to a third-party AI service (OpenRouter) to produce them — please do not share personal info.
+</footer>
+<script>
+(function () {
+  const chat = document.getElementById('chat');
+  const messageInput = document.getElementById('message');
+  const sendBtn = document.getElementById('send');
+  const remainingEl = document.getElementById('remaining');
+  const wakingEl = document.getElementById('waking');
+
+  // Session id: create once, keep in localStorage
+  let sessionId = localStorage.getItem('aunty_session_id');
+  if (!sessionId) {
+    sessionId = 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('aunty_session_id', sessionId);
+  }
+
+  let remaining = 0;
+  let typingEl = null;
+
+  function addBubble(text, cls) {
+    const div = document.createElement('div');
+    div.className = 'bubble ' + cls;
+    div.textContent = text;
+    chat.appendChild(div);
+    scrollToBottom();
+  }
+
+  function addError(text) {
+    const div = document.createElement('div');
+    div.className = 'error';
+    div.textContent = text;
+    chat.appendChild(div);
+    scrollToBottom();
+  }
+
+  function setTyping(show) {
+    if (typingEl) { typingEl.remove(); typingEl = null; }
+    if (show) {
+      typingEl = document.createElement('div');
+      typingEl.className = 'typing';
+      typingEl.textContent = 'Aunty is typing…';
+      chat.appendChild(typingEl);
+      scrollToBottom();
+    }
+  }
+
+  function showWaking(show) {
+    wakingEl.style.display = show ? 'block' : 'none';
+    if (show) scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function updateRemaining() {
+    if (remaining > 0) {
+      remainingEl.textContent = 'Messages left today: ' + remaining;
+    } else {
+      remainingEl.textContent = 'Daily limit reached. Come back tomorrow.';
+    }
+  }
+
+  function setSending(disabled) {
+    sendBtn.disabled = disabled;
+    messageInput.disabled = disabled;
+  }
+
+  async function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text) return;
+    messageInput.value = '';
+    setSending(true);
+
+    addBubble(text, 'user');
+
+    const controller = new AbortController();
+    let wakingTimer = null;
+
+    try {
+      wakingTimer = setTimeout(() => showWaking(true), 8000);
+
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message: text }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(wakingTimer);
+      showWaking(false);
+
+      if (res.status === 429) {
+        const data = await res.json();
+        addError(data.reply || 'Too many messages, beta. Come back tomorrow.');
+        remaining = data.remaining != null ? data.remaining : 0;
+        updateRemaining();
+        return;
+      }
+      if (res.status === 400) {
+        const data = await res.json();
+        addError(data.reply || 'That message could not be sent.');
+        remaining = data.remaining != null ? data.remaining : remaining;
+        updateRemaining();
+        return;
+      }
+      if (!res.ok) {
+        addError('The aunty is busy right now. Try again in a moment.');
+        return;
+      }
+
+      const data = await res.json();
+      setTyping(true);
+      await new Promise(r => setTimeout(r, 500));
+      setTyping(false);
+      addBubble(data.reply, 'aunty');
+      remaining = data.remaining != null ? data.remaining : remaining;
+      updateRemaining();
+    } catch (err) {
+      clearTimeout(wakingTimer);
+      showWaking(false);
+      if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+        addError('Request timed out. The aunty is thinking hard — try again.');
+      } else {
+        addError('Could not reach the aunty. Check your connection and try again.');
+      }
+    } finally {
+      setSending(false);
+      messageInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  messageInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+  });
+
+  messageInput.focus();
+})();
+</script>
+</body>
+</html>

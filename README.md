@@ -69,8 +69,8 @@ Both use the same engine (`aunty_core.py`); the only difference is `debug=False`
 You need Python 3 and a free [OpenRouter](https://openrouter.ai) API key.
 
 ```powershell
-git clone https://github.com/ShubhDeshani/judgemental-padosi-aunty.git
-cd judgemental-padosi-aunty
+git clone https://github.com/ShubhDeshani/Judgemental-Aunty-Chatbot.git
+cd Judgemental-Aunty-Chatbot
 python -m venv venv
 venv\Scripts\Activate.ps1          # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
@@ -157,6 +157,37 @@ These runs were made before the he/him/his rewrite existed. To measure the rewri
 - A web interface (React frontend, small Python API) with the API key kept on the server.
 - A Hinglish test set, and a comparison against a multilingual embedding model.
 - A second RAG project over data that does not fit in a prompt.
+
+## Run the website
+
+Start the aunty's web interface locally:
+
+```powershell
+# make sure your OpenRouter key is in .env first
+notepad .env          # paste OPENROUTER_API_KEY=sk-or-..., save
+start_website.bat
+```
+
+`start_website.bat` opens two windows:
+- **Aunty Server** — runs the FastAPI backend on `http://localhost:8000`
+- **Cloudflare Tunnel** — prints a temporary `https://....trycloudflare.com` address
+
+Open that address (or `http://localhost:8000`) in your browser to chat.
+
+### Limits
+
+The aunty enforces rate limits so the free OpenRouter tier isn't burned through:
+
+- **8 messages per visitor per day** (visitor = IP + session id)
+- **6 messages per minute per visitor**
+- **45 messages per day across the whole site**
+- **300 characters max per message**
+
+Counters live in memory and reset at midnight. When a limit is hit, the aunty replies with a polite 429 instead of calling the LLM.
+
+### Public link (temporary)
+
+The Cloudflare trycloudflare address changes every time you start the tunnel, stops when the tunnel stops, and has no uptime guarantee. It is not a permanent URL — share it only while the tunnel window is open.
 
 ## Built with
 
