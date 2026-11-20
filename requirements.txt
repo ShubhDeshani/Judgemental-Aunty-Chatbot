@@ -1,4 +1,2 @@
-chromadb
-sentence-transformers
-openai
-python-dotenv
+fastapi
+uvicorn

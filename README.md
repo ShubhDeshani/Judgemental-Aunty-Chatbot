@@ -161,6 +161,37 @@ These runs were made before the he/him/his rewrite existed. To measure the rewri
 - A Hinglish test set, and a comparison against a multilingual embedding model.
 - A second RAG project over data that does not fit in a prompt.
 
+## Run the website
+
+Start the aunty's web interface locally:
+
+```powershell
+# make sure your OpenRouter key is in .env first
+notepad .env          # paste OPENROUTER_API_KEY=sk-or-..., save
+start_website.bat
+```
+
+`start_website.bat` opens two windows:
+- **Aunty Server** — runs the FastAPI backend on `http://localhost:8000`
+- **Cloudflare Tunnel** — prints a temporary `https://....trycloudflare.com` address
+
+Open that address (or `http://localhost:8000`) in your browser to chat.
+
+### Limits
+
+The aunty enforces rate limits so the free OpenRouter tier isn't burned through:
+
+- **8 messages per visitor per day** (visitor = IP + session id)
+- **6 messages per minute per visitor**
+- **45 messages per day across the whole site**
+- **300 characters max per message**
+
+Counters live in memory and reset at midnight. When a limit is hit, the aunty replies with a polite 429 instead of calling the LLM.
+
+### Public link (temporary)
+
+The Cloudflare trycloudflare address changes every time you start the tunnel, stops when the tunnel stops, and has no uptime guarantee. It is not a permanent URL — share it only while the tunnel window is open.
+
 ## Built with
 
 Python, [ChromaDB](https://www.trychroma.com), [sentence-transformers](https://www.sbert.net), [OpenRouter](https://openrouter.ai) and the `openai` Python client. Built as a learning project, with Claude (Anthropic) used as a tutor and pair-programmer.

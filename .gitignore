@@ -11,6 +11,8 @@ chroma_db/
 # Python
 __pycache__/
 *.pyc
+*.log
+.pytest_cache/
 
 # Editor / OS clutter
 .vscode/
