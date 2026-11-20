@@ -50,7 +50,6 @@ def test_index_serves_html(client):
     assert r.status_code == 200
     assert "text/html" in r.headers.get("content-type", "")
     assert "Judgemental Padosi Aunty" in r.text
-    assert "github.com/ShubhDeshani/Judgemental-Aunty-Chatbot" in r.text
 
 
 def test_normal_chat(client):

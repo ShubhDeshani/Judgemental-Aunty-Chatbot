@@ -1,10 +1,12 @@
 """
-Website backend for the Judgemental Padosi Aunty chatbot.
+Judgemental Padosi Aunty — Render-ready backend.
 
 FastAPI app wrapping a single shared AuntyBot instance with:
   * per-visitor rate limits (daily + per-minute)
   * site-wide daily limit
   * per-session fact tracking (swapped onto the shared bot under a lock)
+  * CORS so the frontend can call it cross-origin
+  * serves the HTML frontend at /
 
 Limits are constants at the top, overridable via environment variables.
 """
@@ -16,6 +18,7 @@ from datetime import datetime, date
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -31,6 +34,9 @@ SITE_DAILY = int(os.getenv("AUNTY_SITE_DAILY", "45"))
 MAX_MESSAGE_CHARS = int(os.getenv("AUNTY_MAX_MESSAGE_CHARS", "300"))
 PER_VISITOR_PER_MINUTE = int(os.getenv("AUNTY_PER_VISITOR_PER_MINUTE", "6"))
 MAX_SESSION_ID_LEN = int(os.getenv("AUNTY_MAX_SESSION_ID_LEN", "64"))
+
+# Render injects PORT; fall back to 8000 for local dev.
+PORT = int(os.getenv("PORT", "8000"))
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +108,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Judgemental Padosi Aunty", lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 WEB_DIR = Path(__file__).resolve().parent / "web"
 
 
@@ -121,7 +135,7 @@ async def chat(req: ChatRequest, request: Request):
         return JSONResponse(
             status_code=503,
             content={
-                "reply": "The aunty is not set up yet. Ask the owner to add an OpenRouter key and restart.",
+                "reply": "The aunty is not set up yet. The owner needs to add an OpenRouter key on Render and redeploy.",
                 "remaining": 0,
             },
         )
@@ -150,11 +164,11 @@ async def chat(req: ChatRequest, request: Request):
             },
         )
 
-    global _site_count
     vk = _visitor_key(session_id, request)
     today = _today()
     mk = _minute_key()
 
+    global _site_count
     with _lock:
         _reset_daily_if_needed()
 

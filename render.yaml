@@ -1,0 +1,16 @@
+services:
+  - type: web
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn server:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: AUNTY_PER_VISITOR_DAILY
+        value: "8"
+      - key: AUNTY_SITE_DAILY
+        value: "45"
+      - key: AUNTY_MAX_MESSAGE_CHARS
+        value: "300"
+      - key: AUNTY_PER_VISITOR_PER_MINUTE
+        value: "6"
